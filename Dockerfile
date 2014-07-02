@@ -32,10 +32,10 @@ RUN sed -ri 's/#admin_token=ADMIN/admin_token=ADMIN/' /etc/keystone/keystone.con
 RUN keystone-all &
 
 #Create Tenants, Users, Roles
-RUN export OS_SERVICE_ENDPOINT=http://localhost:35357/v2.0
-RUN export OS_SERVICE_TOKEN=ADMIN
-RUN export OS_AUTH_URL=http://127.0.0.1:35357/v2.0/
-RUN keystone service-create --name=ceilometer --type=metering --description="Ceilometer Service"
+#RUN export OS_SERVICE_ENDPOINT=http://localhost:35357/v2.0
+#RUN export OS_SERVICE_TOKEN=ADMIN
+#RUN export OS_AUTH_URL=http://127.0.0.1:35357/v2.0/
+RUN keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ service-create --name=ceilometer --type=metering --description="Ceilometer Service"
 
 #This you will need to substitute your values where
 # CEILOMETER_SERVICE = the id of the service created by the keystone service-create command
