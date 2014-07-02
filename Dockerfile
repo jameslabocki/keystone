@@ -32,21 +32,24 @@ RUN sed -ri 's/#admin_token=ADMIN/admin_token=ADMIN/' /etc/keystone/keystone.con
 
 ## Start Keystone
 RUN echo "#!/bin/bash" > /root/entrypoint.sh
+RUN echo "/usr/bin/keystone-manage db_sync" >> /root/entrypoint.sh
 RUN echo "/usr/bin/keystone-all &" >> /root/entrypoint.sh
 
 ## Create Services
+#I'm not sure if exporting works, so I just specify these environment variables on each command, but it might be cleaner to test this
 #RUN export OS_SERVICE_ENDPOINT=http://localhost:35357/v2.0
 #RUN export OS_SERVICE_TOKEN=ADMIN
 #RUN export OS_AUTH_URL=http://127.0.0.1:35357/v2.0/
 RUN echo '/usr/bin/keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ service-create --name=ceilometer --type=metering --description="Ceilometer Service"' >> /root/entrypoint.sh
+RUN echo '/usr/bin/keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ service-create --name=keystone --type=identity --description="OpenStack Identity"' >> /root/entrypoint.sh
 RUN chmod 755 /root/entrypoint.sh
-
-#Added for debugging, probably remove later
-#RUN ps -ef |grep -i key > /root/keystone.ps
 
 #This you will need to substitute your values and run later - the values are:
 # CEILOMETER_SERVICE = the id of the service created by the keystone service-create command
-# SERVICE_HOST = the host where the Ceilometer API is running
-RUN echo 'keystone endpoint-create --region RegionOne --service_id $CEILOMETER_SERVICE --publicurl "http://$SERVICE_HOST:8777/"  --adminurl "http://$SERVICE_HOST:8777/" --internalurl "http://$SERVICE_HOST:8777/"' > /root/postlaunchconfig.sh
+# KEYSTONE_SERVICE = the id of the service created by the keystone service-create command
+# CEILOMETER_SERVICE_HOST = the host where the Ceilometer API is running
+# KEYSTONE_SERVICE_HOST = the host where the Keystone API is running
+RUN echo 'keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ endpoint-create --region RegionOne --service_id $KEYSTONE_SERVER --publicurl "http://KEYSTONE_SERVICE_HOST:5000/v2.0" --internalurl "http://KEYSTONE_SERVICE_HOST:5000/v2.0" --adminurl "http://KEYSTONE_SERVICE_HOST:35357/v2.0"' > /root/postlaunchconfig.sh
+RUN echo 'keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ endpoint-create --region RegionOne --service_id $CEILOMETER_SERVICE --publicurl "http://CEILOMETER_SERVICE_HOST:8777/"  --adminurl "http://CEILOMETER_SERVICE_HOST:8777/" --internalurl "http://CEILOMETER_SERVICE_HOST:8777/"' > /root/postlaunchconfig.sh
 
 #ENTRYPOINT /root/entrypoint.sh
