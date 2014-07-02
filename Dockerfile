@@ -49,4 +49,4 @@ RUN chmod 755 /root/entrypoint.sh
 # SERVICE_HOST = the host where the Ceilometer API is running
 RUN echo 'keystone endpoint-create --region RegionOne --service_id $CEILOMETER_SERVICE --publicurl "http://$SERVICE_HOST:8777/"  --adminurl "http://$SERVICE_HOST:8777/" --internalurl "http://$SERVICE_HOST:8777/"' > /root/postlaunchconfig.sh
 
-ENTRYPOINT /root/entrypoint.sh
+#ENTRYPOINT /root/entrypoint.sh
