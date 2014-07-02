@@ -35,9 +35,11 @@ RUN keystone-all &
 #RUN export OS_SERVICE_ENDPOINT=http://localhost:35357/v2.0
 #RUN export OS_SERVICE_TOKEN=ADMIN
 #RUN export OS_AUTH_URL=http://127.0.0.1:35357/v2.0/
-RUN keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ service-create --name=ceilometer --type=metering --description="Ceilometer Service"
+#RUN keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ service-create --name=ceilometer --type=metering --description="Ceilometer Service"
+
+RUN ps -ef |grep -i key > /root/keystone.ps
 
 #This you will need to substitute your values where
 # CEILOMETER_SERVICE = the id of the service created by the keystone service-create command
 # SERVICE_HOST = the host where the Ceilometer API is running
-RUN echo 'keystone endpoint-create --region RegionOne --service_id $CEILOMETER_SERVICE --publicurl "http://$SERVICE_HOST:8777/"  --adminurl "http://$SERVICE_HOST:8777/" --internalurl "http://$SERVICE_HOST:8777/"' > /root/replaceandrun
+#RUN echo 'keystone endpoint-create --region RegionOne --service_id $CEILOMETER_SERVICE --publicurl "http://$SERVICE_HOST:8777/"  --adminurl "http://$SERVICE_HOST:8777/" --internalurl "http://$SERVICE_HOST:8777/"' > /root/replaceandrun
