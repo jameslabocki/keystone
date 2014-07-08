@@ -31,18 +31,18 @@ RUN sed -ri 's/#admin_token=ADMIN/admin_token=ADMIN/' /etc/keystone/keystone.con
 # The following sections build a script that will be executed on launch via ENTRYPOINT
 
 ## Start Keystone
-RUN echo "#!/bin/bash" > /root/entrypoint.sh
-RUN echo "/usr/bin/keystone-manage db_sync" >> /root/entrypoint.sh
-RUN echo "/usr/bin/keystone-all &" >> /root/entrypoint.sh
+RUN echo "#!/bin/bash" > /root/postlaunchconfig.sh
+RUN echo "/usr/bin/keystone-manage db_sync" >> /root/postlaunchconfig.sh
+RUN echo "/usr/bin/keystone-all &" >> /root/postlaunchconfig.sh
 
 ## Create Services
 #I'm not sure if exporting works, so I just specify these environment variables on each command, but it might be cleaner to test this
 #RUN export OS_SERVICE_ENDPOINT=http://localhost:35357/v2.0
 #RUN export OS_SERVICE_TOKEN=ADMIN
 #RUN export OS_AUTH_URL=http://127.0.0.1:35357/v2.0/
-RUN echo '/usr/bin/keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ service-create --name=ceilometer --type=metering --description="Ceilometer Service"' >> /root/entrypoint.sh
-RUN echo '/usr/bin/keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ service-create --name=keystone --type=identity --description="OpenStack Identity"' >> /root/entrypoint.sh
-RUN chmod 755 /root/entrypoint.sh
+RUN echo '/usr/bin/keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ service-create --name=ceilometer --type=metering --description="Ceilometer Service"' >> /root/postlaunchconfig.sh
+RUN echo '/usr/bin/keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ service-create --name=keystone --type=identity --description="OpenStack Identity"' >> /root/postlaunchconfig.sh
+RUN chmod 755 /root/postlaunchconfig.sh
 
 #This you will need to substitute your values and run later - the values are:
 # CEILOMETER_SERVICE = the id of the service created by the keystone service-create command
@@ -52,4 +52,3 @@ RUN chmod 755 /root/entrypoint.sh
 RUN echo 'keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ endpoint-create --region RegionOne --service_id $KEYSTONE_SERVER --publicurl "http://KEYSTONE_SERVICE_HOST:5000/v2.0" --internalurl "http://KEYSTONE_SERVICE_HOST:5000/v2.0" --adminurl "http://KEYSTONE_SERVICE_HOST:35357/v2.0"' > /root/postlaunchconfig.sh
 RUN echo 'keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ endpoint-create --region RegionOne --service_id $CEILOMETER_SERVICE --publicurl "http://CEILOMETER_SERVICE_HOST:8777/"  --adminurl "http://CEILOMETER_SERVICE_HOST:8777/" --internalurl "http://CEILOMETER_SERVICE_HOST:8777/"' > /root/postlaunchconfig.sh
 
-#ENTRYPOINT /root/entrypoint.sh
