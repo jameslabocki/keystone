@@ -42,13 +42,16 @@ RUN echo "/usr/bin/keystone-all &" >> /root/postlaunchconfig.sh
 #RUN export OS_AUTH_URL=http://127.0.0.1:35357/v2.0/
 RUN echo '/usr/bin/keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ service-create --name=ceilometer --type=metering --description="Ceilometer Service"' >> /root/postlaunchconfig.sh
 RUN echo '/usr/bin/keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ service-create --name=keystone --type=identity --description="OpenStack Identity"' >> /root/postlaunchconfig.sh
-RUN chmod 755 /root/postlaunchconfig.sh
 
 #This you will need to substitute your values and run later - the values are:
 # CEILOMETER_SERVICE = the id of the service created by the keystone service-create command
 # KEYSTONE_SERVICE = the id of the service created by the keystone service-create command
 # CEILOMETER_SERVICE_HOST = the host where the Ceilometer API is running
 # KEYSTONE_SERVICE_HOST = the host where the Keystone API is running
-RUN echo 'keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ endpoint-create --region RegionOne --service_id $KEYSTONE_SERVER --publicurl "http://KEYSTONE_SERVICE_HOST:5000/v2.0" --internalurl "http://KEYSTONE_SERVICE_HOST:5000/v2.0" --adminurl "http://KEYSTONE_SERVICE_HOST:35357/v2.0"' > /root/postlaunchconfig.sh
-RUN echo 'keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ endpoint-create --region RegionOne --service_id $CEILOMETER_SERVICE --publicurl "http://CEILOMETER_SERVICE_HOST:8777/"  --adminurl "http://CEILOMETER_SERVICE_HOST:8777/" --internalurl "http://CEILOMETER_SERVICE_HOST:8777/"' > /root/postlaunchconfig.sh
+#We try to get them ourselves for the keystone service and host, but the ceilometer host needs to be provided
+RUN echo 'KEYSTONE_SERVICE_HOST=`ip a |grep inet |grep eth0 |awk -F" " \'{print $2}\' |awk -F"/" \'{print $1}\'` >> /root/postlaunchconfig.sh
+RUN echo 'KEYSTONE_SERVER=`/usr/bin/keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ service-list |grep keystone |awk -F" " \'{print $2}\'`' >> /root/postlaunchconfig.sh
+RUN echo 'keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ endpoint-create --region RegionOne --service_id $KEYSTONE_SERVER --publicurl "http://KEYSTONE_SERVICE_HOST:5000/v2.0" --internalurl "http://KEYSTONE_SERVICE_HOST:5000/v2.0" --adminurl "http://KEYSTONE_SERVICE_HOST:35357/v2.0"' >> /root/postlaunchconfig.sh
+RUN echo 'keystone --os_auth_url http://127.0.0.1:35357/v2.0/ --os-token ADMIN --os-endpoint http://127.0.0.1:35357/v2.0/ endpoint-create --region RegionOne --service_id $CEILOMETER_SERVICE --publicurl "http://CEILOMETER_SERVICE_HOST:8777/"  --adminurl "http://CEILOMETER_SERVICE_HOST:8777/" --internalurl "http://CEILOMETER_SERVICE_HOST:8777/"' >> /root/postlaunchconfig.sh
 
+RUN chmod 755 /root/postlaunchconfig.sh
